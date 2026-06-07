@@ -1,0 +1,112 @@
+// Family Summer Planner — data model
+// Recurring activities are NOT materialized: each activity stores its recurrence
+// rule once; occurrences are computed on the fly. Completion is tracked per
+// (activity, date) via the Completion table.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  EDITOR
+  VIEWER
+}
+
+enum ActivityType {
+  CHORE
+  CAMP
+  SCREEN_TIME
+  LEARNING
+  APPOINTMENT
+  FREE_TIME
+  OTHER
+}
+
+enum RecurrenceType {
+  NONE
+  DAILY
+  WEEKDAYS
+  WEEKLY
+  CUSTOM
+}
+
+model FamilyMember {
+  id          String       @id @default(cuid())
+  name        String
+  avatar      String? // emoji preset (no file upload in MVP)
+  color       String // hex color for calendar tinting
+  role        Role
+  activities  Activity[]
+  completions Completion[]
+  goals       Goal[]
+  createdAt   DateTime     @default(now())
+}
+
+model Activity {
+  id           String         @id @default(cuid())
+  title        String
+  description  String?
+  type         ActivityType
+  assignedTo   FamilyMember   @relation(fields: [assignedToId], references: [id], onDelete: Cascade)
+  assignedToId String
+  points       Int            @default(0)
+  timeStart    String? // "HH:mm" time-of-day; drives ordering within a day
+  timeEnd      String? // "HH:mm"
+  durationMin  Int?
+  recurrence   RecurrenceType @default(NONE)
+  daysOfWeek   Int[] // 0=Sun .. 6=Sat, used for WEEKLY / CUSTOM
+  startDate    DateTime // first day it applies / the date for one-offs (date-only)
+  endDate      DateTime? // last day it applies; null = open-ended
+  completions  Completion[]
+  goal         Goal?          @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  goalId       String?
+  sourceEventId String?       @unique // Google Calendar event id, for dedup on re-import
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Goal {
+  id          String       @id @default(cuid())
+  title       String // free text
+  description String? // free text
+  member      FamilyMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId    String
+  activities  Activity[] // activities the child linked to this goal
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Completion {
+  id             String       @id @default(cuid())
+  activity       Activity     @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  activityId     String
+  member         FamilyMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId       String
+  occurrenceDate DateTime // the day this occurrence belongs to (date-only)
+  completedAt    DateTime     @default(now())
+
+  @@unique([activityId, occurrenceDate])
+}
+
+model Reward {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  pointCost   Int
+  createdAt   DateTime @default(now())
+}
+
+// Single-row store for the family's Google Calendar connection (read-only import).
+model GoogleConnection {
+  id           String    @id @default(cuid())
+  email        String?
+  accessToken  String?
+  refreshToken String?
+  expiryDate   DateTime?
+  updatedAt    DateTime  @updatedAt
+}

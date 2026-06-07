@@ -1,26 +1,49 @@
 @import "tailwindcss";
 
+@theme {
+  --color-cream: #fff9f0;
+  --color-ink: #2b2440;
+  --color-brand: #7c3aed;
+  --color-brand-soft: #ede9fe;
+  --font-sans: var(--font-heebo), system-ui, sans-serif;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fff9f0;
+  --foreground: #2b2440;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  /* leave room for the fixed bottom navigation */
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  min-height: 100dvh;
+}
+
+/* Friendlier default tap behavior for kids on touch screens */
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-pop {
+  animation: pop 0.35s ease-out;
 }

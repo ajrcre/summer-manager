@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# מתכנן הקיץ המשפחתי 🌞 (Family Summer Planner)
 
-## Getting Started
+A mobile-first, Hebrew (RTL) web app for managing kids' summer schedules. Parents
+(editors) plan recurring chores and activities; kids (viewers) open the app, see today's
+schedule, mark tasks complete, and earn points toward rewards.
 
-First, run the development server:
+Built with **Next.js (App Router) + TypeScript**, **Prisma + Postgres**, **Tailwind CSS**,
+installable as a **PWA**. Designed for one family — no accounts; editor actions are gated
+by a shared PIN.
+
+## Features
+
+- **Today view** – kid-friendly schedule with a big complete toggle, progress ring & points
+- **Day / Week / Month** calendar views, color-coded by activity type, with filters
+- **Summer Goals** – kids define their own free-text goals (add/edit/delete, no PIN), link
+  activities to a goal, and see a completion count as gentle progress
+- **Recurring activities** – daily, weekdays (Sun–Thu), weekly, or custom days
+- **Dashboard** – today's summary, per-child progress & points, next 7 days, next-up reminder
+- **Rewards** – points dashboard + rewards catalog
+- **PIN-gated editor** for creating/editing/duplicating activities, members and rewards
+- **Calendar export** – single activity or full schedule as `.ics` (with `RRULE`)
+- **Share to WhatsApp** – one-tap `wa.me` link with the day's schedule
+- **PWA** – installable, offline shell, app icons
+
+## Local development
+
+Requires Node 20+. A Postgres database is needed (Docker is the easiest locally):
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 1. Start a local Postgres (port 5433)
+docker run -d --name summer-pg -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=summer -p 5433:5432 postgres:16-alpine
+
+# 2. Configure env
+cp .env.example .env   # defaults already match the Docker DB above
+
+# 3. Install, migrate, seed
+npm install
+npx prisma migrate dev
+npm run db:seed
+
+# 4. Run
+npm run dev            # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Default editor PIN is `1234` (set `FAMILY_EDITOR_PIN` in `.env`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | Postgres connection string |
+| `FAMILY_EDITOR_PIN` | Shared PIN that unlocks editor mode |
+| `EDITOR_COOKIE_SECRET` | Secret used to sign the editor session cookie |
 
-## Learn More
+## Deploy to Vercel + Neon
 
-To learn more about Next.js, take a look at the following resources:
+1. Push the repo to GitHub and import it into **Vercel**.
+2. In the Vercel project, add the **Neon** Postgres integration (Storage → Create → Neon).
+   It sets `DATABASE_URL` automatically.
+3. Add `FAMILY_EDITOR_PIN` and a strong `EDITOR_COOKIE_SECRET` as environment variables.
+4. Run the migration against Neon (once):
+   ```bash
+   DATABASE_URL="<neon-url>" npx prisma migrate deploy
+   DATABASE_URL="<neon-url>" npm run db:seed   # optional starter data
+   ```
+5. Deploy. `prisma generate` runs automatically on install/build.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+app/            Routes (today, day, week, month, rewards, activities, members, unlock, api/ics)
+components/     UI components (ActivityCard, ProgressRing, MemberSwitcher, forms, nav…)
+lib/            Core logic: recurrence, occurrences, completions, points, progress, ics, auth, dates
+prisma/         schema.prisma + seed.ts
+public/         PWA manifest, service worker, icons
+```
 
-## Deploy on Vercel
+The heart of the data model: recurring activities are **not** materialized. Each activity
+stores its recurrence rule once; `lib/activities.ts → getOccurrencesForRange()` expands
+occurrences on demand and joins completions. This one function powers every view.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Notes & assumptions
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- "Weekdays" = **Sunday–Thursday** (Israeli convention); use *custom days* for anything else.
+- Avatars are emoji presets (no image uploads).
+- One shared editor PIN — no per-user logins (single-family app).
