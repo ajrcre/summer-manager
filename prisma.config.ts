@@ -12,7 +12,11 @@ export default defineConfig({
     // Prisma CLI (migrate/db) prefers a DIRECT (unpooled) connection when
     // available — migrations use advisory locks that don't work through a
     // connection pooler. The app runtime still uses DATABASE_URL (pooled).
-    // Falls back to DATABASE_URL when DIRECT_URL isn't set (e.g. locally).
-    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
+    // `DATABASE_URL_UNPOOLED` is what Vercel's Neon integration auto-creates for
+    // the direct connection. Falls back to DATABASE_URL when neither is set (local).
+    url:
+      process.env["DIRECT_URL"] ??
+      process.env["DATABASE_URL_UNPOOLED"] ??
+      process.env["DATABASE_URL"],
   },
 });
