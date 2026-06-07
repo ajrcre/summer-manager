@@ -1,16 +1,19 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { unlockAction } from "./actions";
 
 export function UnlockForm() {
-  const router = useRouter();
   const [state, formAction, pending] = useActionState(unlockAction, {});
 
   useEffect(() => {
-    if (state?.ok) router.push("/activities");
-  }, [state, router]);
+    if (state?.ok) {
+      // Full reload (not router.push) so the cached layout/header and every
+      // gated page re-render together with the new cookie — prevents the
+      // "header says unlocked, page says locked" mismatch.
+      window.location.assign("/activities");
+    }
+  }, [state]);
 
   return (
     <form action={formAction} className="space-y-3">
