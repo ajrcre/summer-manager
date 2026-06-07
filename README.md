@@ -56,15 +56,21 @@ Default editor PIN is `1234` (set `FAMILY_EDITOR_PIN` in `.env`).
 ## Deploy to Vercel + Neon
 
 1. Push the repo to GitHub and import it into **Vercel**.
-2. In the Vercel project, add the **Neon** Postgres integration (Storage → Create → Neon).
-   It sets `DATABASE_URL` automatically.
-3. Add `FAMILY_EDITOR_PIN` and a strong `EDITOR_COOKIE_SECRET` as environment variables.
-4. Run the migration against Neon (once):
-   ```bash
-   DATABASE_URL="<neon-url>" npx prisma migrate deploy
-   DATABASE_URL="<neon-url>" npm run db:seed   # optional starter data
-   ```
-5. Deploy. `prisma generate` runs automatically on install/build.
+2. In the Vercel project, create a **Neon** Postgres database (Storage → Create → Neon).
+3. Set environment variables (Settings → Environment Variables):
+   | Name | Value |
+   |---|---|
+   | `DATABASE_URL` | Neon **pooled** string (host contains `-pooler`) — used at runtime |
+   | `DIRECT_URL` | Neon **direct/unpooled** string — used by migrations |
+   | `FAMILY_EDITOR_PIN` | your editor PIN (not the dev default) |
+   | `EDITOR_COOKIE_SECRET` | a long random value (`openssl rand -hex 32`) |
+4. **Deploy.** The build runs `prisma migrate deploy && prisma generate && next build`, so
+   migrations are applied automatically on every deploy — no manual step.
+5. (Optional) Load starter data once: `DIRECT_URL="<neon-direct>" npm run db:seed`.
+
+> Why two URLs? Prisma migrations need a direct (non-pooled) connection, while the
+> serverless runtime benefits from the pooled one. If you only set `DATABASE_URL`, both
+> fall back to it (fine for low traffic).
 
 ## Project structure
 
