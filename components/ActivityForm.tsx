@@ -13,6 +13,7 @@ import {
   createActivityAction,
   updateActivityAction,
 } from "@/app/activities/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export type ActivityFormDefaults = {
   id?: string;
@@ -251,9 +252,9 @@ export function ActivityForm({
         </div>
       </div>
 
-      <button className="w-full rounded-full bg-brand py-3 font-bold text-white">
+      <SubmitButton>
         {isEdit ? "שמירת שינויים" : "יצירת פעילות"}
-      </button>
+      </SubmitButton>
     </form>
   );
 }
