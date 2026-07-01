@@ -53,6 +53,9 @@ export function ActivityForm({
     defaults.recurrence,
   );
   const showDays = recurrence === "WEEKLY" || recurrence === "CUSTOM";
+  const [assignMode, setAssignMode] = useState<"specific" | "open">(
+    defaults.assignedToId ? "specific" : "open",
+  );
 
   return (
     <form
@@ -92,21 +95,68 @@ export function ActivityForm({
             ))}
           </select>
         </div>
-        <div>
-          <label className={labelClass}>משויך ל-</label>
-          <select
-            name="assignedToId"
-            defaultValue={defaults.assignedToId}
-            required
-            className={inputClass}
-          >
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.avatar} {m.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {isEdit ? (
+          <div>
+            <label className={labelClass}>משויך ל-</label>
+            <select
+              name="assignedToId"
+              defaultValue={defaults.assignedToId}
+              className={inputClass}
+            >
+              <option value="">🙋 ללא שיוך (פתוח לכולם)</option>
+              {members.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.avatar} {m.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div>
+            <label className={labelClass}>משויך ל-</label>
+            <div className="flex gap-3 text-sm font-semibold text-ink">
+              <label className="flex items-center gap-1.5">
+                <input
+                  type="radio"
+                  name="assignMode"
+                  value="specific"
+                  checked={assignMode === "specific"}
+                  onChange={() => setAssignMode("specific")}
+                />
+                ילדים ספציפיים
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input
+                  type="radio"
+                  name="assignMode"
+                  value="open"
+                  checked={assignMode === "open"}
+                  onChange={() => setAssignMode("open")}
+                />
+                🙋 פתוח לכולם
+              </label>
+            </div>
+            {assignMode === "specific" && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {members.map((m) => (
+                  <label
+                    key={m.id}
+                    className="cursor-pointer select-none rounded-full border-2 border-violet-100 px-3 py-1.5 text-sm font-semibold has-[:checked]:border-transparent has-[:checked]:bg-brand has-[:checked]:text-white"
+                  >
+                    <input
+                      type="checkbox"
+                      name="assignedToIds"
+                      value={m.id}
+                      defaultChecked={m.id === defaults.assignedToId}
+                      className="hidden"
+                    />
+                    {m.avatar} {m.name}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-3 gap-3">

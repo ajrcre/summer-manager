@@ -8,7 +8,7 @@ import { keyToDate, storedDateToKey } from "@/lib/dates";
 import { getOccurrenceKeys } from "@/lib/recurrence";
 import { prisma } from "@/lib/prisma";
 
-export type ActivityWithMember = Activity & { assignedTo: FamilyMember };
+export type ActivityWithMember = Activity & { assignedTo: FamilyMember | null };
 
 export type Occurrence = {
   activity: ActivityWithMember;
@@ -34,10 +34,14 @@ export async function getOccurrencesForRange(
 ): Promise<Occurrence[]> {
   const activities = await prisma.activity.findMany({
     where: {
-      ...(filter.memberId ? { assignedToId: filter.memberId } : {}),
-      ...(filter.type ? { type: filter.type } : {}),
-      startDate: { lte: keyToDate(endKey) },
-      OR: [{ endDate: null }, { endDate: { gte: keyToDate(startKey) } }],
+      AND: [
+        filter.memberId
+          ? { OR: [{ assignedToId: filter.memberId }, { assignedToId: null }] }
+          : {},
+        filter.type ? { type: filter.type } : {},
+        { startDate: { lte: keyToDate(endKey) } },
+        { OR: [{ endDate: null }, { endDate: { gte: keyToDate(startKey) } }] },
+      ],
     },
     include: { assignedTo: true },
   });

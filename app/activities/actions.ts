@@ -7,7 +7,7 @@ import { keyToDate } from "@/lib/dates";
 import { prisma } from "@/lib/prisma";
 import type { ActivityType, RecurrenceType } from "@/generated/prisma/enums";
 
-function parseForm(formData: FormData) {
+function parseCommonFields(formData: FormData) {
   const recurrence = String(formData.get("recurrence")) as RecurrenceType;
   const daysOfWeek = formData
     .getAll("daysOfWeek")
@@ -24,7 +24,6 @@ function parseForm(formData: FormData) {
     title: String(formData.get("title") ?? "").trim(),
     description: str("description"),
     type: String(formData.get("type")) as ActivityType,
-    assignedToId: String(formData.get("assignedToId") ?? ""),
     points: Number(formData.get("points") ?? 0) || 0,
     timeStart: str("timeStart"),
     timeEnd: str("timeEnd"),
@@ -41,7 +40,26 @@ function parseForm(formData: FormData) {
 
 export async function createActivityAction(formData: FormData): Promise<void> {
   await requireEditor();
-  await prisma.activity.create({ data: parseForm(formData) });
+  const common = parseCommonFields(formData);
+  const isOpen = String(formData.get("assignMode") ?? "") === "open";
+
+  if (isOpen) {
+    await prisma.activity.create({ data: { ...common, assignedToId: null } });
+  } else {
+    const assignedToIds = formData
+      .getAll("assignedToIds")
+      .map(String)
+      .filter(Boolean);
+    if (assignedToIds.length === 0) {
+      throw new Error("יש לבחור לפחות ילד אחד או לסמן פעילות פתוחה לכולם");
+    }
+    await prisma.$transaction(
+      assignedToIds.map((assignedToId) =>
+        prisma.activity.create({ data: { ...common, assignedToId } }),
+      ),
+    );
+  }
+
   revalidatePath("/", "layout");
   redirect("/activities");
 }
@@ -49,7 +67,12 @@ export async function createActivityAction(formData: FormData): Promise<void> {
 export async function updateActivityAction(formData: FormData): Promise<void> {
   await requireEditor();
   const id = String(formData.get("id") ?? "");
-  await prisma.activity.update({ where: { id }, data: parseForm(formData) });
+  const common = parseCommonFields(formData);
+  const assignedToId = String(formData.get("assignedToId") ?? "") || null;
+  await prisma.activity.update({
+    where: { id },
+    data: { ...common, assignedToId },
+  });
   revalidatePath("/", "layout");
   redirect("/activities");
 }

@@ -95,7 +95,7 @@ export default async function TodayPage() {
           {occ.map((o) => (
             <ActivityCard
               key={`${o.activity.id}-${o.dateKey}`}
-              data={toCardData(o)}
+              data={toCardData(o, { currentMemberId: current.id })}
             />
           ))}
         </div>
