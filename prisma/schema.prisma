@@ -52,8 +52,8 @@ model Activity {
   title        String
   description  String?
   type         ActivityType
-  assignedTo   FamilyMember   @relation(fields: [assignedToId], references: [id], onDelete: Cascade)
-  assignedToId String
+  assignedTo   FamilyMember?  @relation(fields: [assignedToId], references: [id], onDelete: Cascade)
+  assignedToId String?
   points       Int            @default(0)
   timeStart    String? // "HH:mm" time-of-day; drives ordering within a day
   timeEnd      String? // "HH:mm"

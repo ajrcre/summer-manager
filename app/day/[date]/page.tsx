@@ -4,6 +4,7 @@ import { getOccurrencesForDay } from "@/lib/activities";
 import { toCardData } from "@/lib/cardData";
 import { addDaysKey, todayKey } from "@/lib/dates";
 import { formatDateHebrew } from "@/lib/format";
+import { getCurrentMember } from "@/lib/members";
 import { ActivityCard } from "@/components/ActivityCard";
 import { EmptyState } from "@/components/EmptyState";
 
@@ -23,6 +24,7 @@ export default async function DayPage({
   const today = todayKey();
 
   const occ = await getOccurrencesForDay(dayKey);
+  const current = await getCurrentMember();
 
   return (
     <div className="space-y-4">
@@ -58,7 +60,10 @@ export default async function DayPage({
           {occ.map((o) => (
             <ActivityCard
               key={`${o.activity.id}-${o.dateKey}`}
-              data={toCardData(o, { withAssignee: true })}
+              data={toCardData(o, {
+                withAssignee: true,
+                currentMemberId: current?.id,
+              })}
             />
           ))}
         </div>

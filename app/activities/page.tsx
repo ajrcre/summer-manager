@@ -61,14 +61,23 @@ export default async function ActivitiesPage() {
         />
       ) : (
         <div className="space-y-5">
-          {members.map((m) => {
-            const list = activities.filter((a) => a.assignedToId === m.id);
+          {[
+            {
+              key: "unassigned",
+              heading: "🙋 ללא שיוך — פתוח לכולם",
+              list: activities.filter((a) => a.assignedToId === null),
+            },
+            ...members.map((m) => ({
+              key: m.id,
+              heading: `${m.avatar} ${m.name}`,
+              list: activities.filter((a) => a.assignedToId === m.id),
+            })),
+          ].map((group) => {
+            const list = group.list;
             if (list.length === 0) return null;
             return (
-              <section key={m.id} className="space-y-2">
-                <h2 className="font-extrabold text-ink">
-                  {m.avatar} {m.name}
-                </h2>
+              <section key={group.key} className="space-y-2">
+                <h2 className="font-extrabold text-ink">{group.heading}</h2>
                 {list.map((a) => {
                   const meta = ACTIVITY_TYPES[a.type];
                   return (

@@ -56,7 +56,8 @@ export default async function DashboardPage() {
             <p className="text-sm font-semibold text-brand">הפעילות הבאה</p>
             <p className="font-bold text-ink">
               {ACTIVITY_TYPES[nextUp.activity.type].emoji} {nextUp.activity.title}{" "}
-              · {nextUp.activity.timeStart} · {nextUp.activity.assignedTo.name}
+              · {nextUp.activity.timeStart} ·{" "}
+              {nextUp.activity.assignedTo?.name ?? "🙋 פתוח לכולם"}
             </p>
           </div>
         </div>

@@ -29,7 +29,7 @@ export default async function EditActivityPage({
           title: activity.title,
           description: activity.description ?? "",
           type: activity.type,
-          assignedToId: activity.assignedToId,
+          assignedToId: activity.assignedToId ?? "",
           points: String(activity.points),
           timeStart: activity.timeStart ?? "",
           timeEnd: activity.timeEnd ?? "",

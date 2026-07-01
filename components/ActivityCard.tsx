@@ -17,6 +17,7 @@ export type ActivityCardData = {
   dateKey: string;
   completedBy: string; // memberId credited when completed
   completed: boolean;
+  open: boolean; // true when unassigned — anyone can claim it by completing it
   // Optional assignee chip (used in family-wide views)
   assignee?: { name: string; avatar: string | null; color: string } | null;
 };
@@ -81,11 +82,17 @@ export function ActivityCard({ data }: { data: ActivityCardData }) {
               {data.points}
             </span>
           )}
-          {data.assignee && (
-            <span className="flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
-              <span>{data.assignee.avatar ?? "🙂"}</span>
-              {data.assignee.name}
+          {data.open ? (
+            <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-700">
+              🙋 פתוח לכולם
             </span>
+          ) : (
+            data.assignee && (
+              <span className="flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
+                <span>{data.assignee.avatar ?? "🙂"}</span>
+                {data.assignee.name}
+              </span>
+            )
           )}
         </span>
       </span>
