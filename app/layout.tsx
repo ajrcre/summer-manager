@@ -3,6 +3,7 @@ import { Heebo } from "next/font/google";
 import "./globals.css";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
+import { RefreshOnForeground } from "@/components/RefreshOnForeground";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 const heebo = Heebo({
@@ -39,6 +40,7 @@ export default function RootLayout({
         <main className="mx-auto w-full max-w-3xl px-4 py-4">{children}</main>
         <BottomNav />
         <ServiceWorkerRegister />
+        <RefreshOnForeground />
       </body>
     </html>
   );
